@@ -51,4 +51,63 @@ void main() {
           })));
     }
   });
+
+  testWidgets('check for screen adaptiveness', (WidgetTester tester) async {
+    const double baseFontSize = 24;
+
+    final testCases = [
+      {'height': 812.0, 'width': 375.0}, // iPhone X
+      {'height': 640.0, 'width': 360.0}, // Typical Android phone
+      {'height': 1024.0, 'width': 768.0}, // iPad
+    ];
+
+    for (var testCase in testCases) {
+      final double? phoneHeight = testCase['height'];
+      final double? phoneWidth = testCase['width'];
+      if (phoneHeight == null || phoneWidth == null) {
+        throw Exception('screen size cannot be null');
+      }
+
+      await tester.pumpWidget(MediaQuery(
+        data: MediaQueryData(
+          size: Size(phoneWidth, phoneHeight),
+        ),
+        child: Builder(builder: (BuildContext context) {
+          // Calculate the expected font size
+          double referenceWidth = phoneWidth < phoneHeight ? 375 : 1440;
+          double referenceHeight = phoneWidth < phoneHeight ? 812 : 900;
+          double scalingFactor = phoneWidth < phoneHeight
+              ? phoneWidth / referenceWidth
+              : phoneHeight / referenceHeight;
+          double expectedFontSize = baseFontSize * scalingFactor;
+
+          // Return the MaterialApp with the Text widget
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text(
+                  'Test Text',
+                  style: TextStyle(
+                      fontSize: SizeConfig.fontSize(context, baseFontSize)),
+                ),
+              ),
+            ),
+          );
+        }),
+      ));
+
+      final textWidget = tester.widget<Text>(find.text('Test Text'));
+      double referenceWidth =
+          phoneWidth < phoneHeight ? 375 : 1440; // Mobile vs web width
+      double referenceHeight =
+          phoneWidth < phoneHeight ? 812 : 900; // Mobile vs web height
+      double scalingFactor = phoneWidth < phoneHeight
+          ? phoneWidth / referenceWidth
+          : phoneHeight / referenceHeight;
+      double expectedFontSize = baseFontSize * scalingFactor;
+
+      // Verify the font size
+      expect(textWidget.style!.fontSize, closeTo(expectedFontSize, 0.1));
+    }
+  });
 }

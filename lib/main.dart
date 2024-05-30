@@ -13,20 +13,26 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       builder: DevicePreview.appBuilder,
       home: Scaffold(
-        body: Column(children: [
-          Container(
-            height: SizeConfig.fromDesignHeight(context, 171),
-            decoration: const BoxDecoration(
-                color: Colors.amber,
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20))),
-          ),
-          SizedBox(
-            height: SizeConfig.fromDesignHeight(context, 511),
-          ),
-          ElevatedButton(onPressed: () {}, child: const Text('hello'))
-        ]),
+        body: SingleChildScrollView(
+          child: Column(children: [
+            Container(
+              height: SizeConfig.fromDesignHeight(context, 171),
+              decoration: const BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20))),
+            ),
+            SizedBox(
+              height: SizeConfig.fromDesignHeight(context, 511),
+            ),
+            Text(
+              'hello amigos ',
+              style: TextStyle(fontSize: SizeConfig.fontSize(context, 24)),
+            ),
+            ElevatedButton(onPressed: () {}, child: const Text('hello'))
+          ]),
+        ),
       ),
     );
   }
@@ -51,10 +57,22 @@ class SizeConfig {
   }
 
   static double fontSize(BuildContext context, double size) {
-    double phoneHeight = MediaQuery.sizeOf(context).height;
-    double phoneWidth = MediaQuery.sizeOf(context).width;
-    if (phoneWidth < phoneHeight) return (phoneWidth / 100) * size;
-    return (phoneHeight / 100) * size;
+    double phoneHeight = MediaQuery.of(context).size.height;
+    double phoneWidth = MediaQuery.of(context).size.width;
+
+    // Reference dimensions for mobile and web
+    double referenceWidth =
+        phoneWidth < phoneHeight ? 375 : 1440; // Mobile vs web width
+    double referenceHeight =
+        phoneWidth < phoneHeight ? 812 : 900; // Mobile vs web height
+
+    // Calculate scaling factor based on the smaller dimension
+    double scalingFactor = phoneWidth < phoneHeight
+        ? phoneWidth / referenceWidth
+        : phoneHeight / referenceHeight;
+
+    // Return the scaled font size
+    return size * scalingFactor;
   }
 
 // instead of mauallly calculating percentages we specifiy the design height divide it by the DesignScreenHeight and multiply it by the current Phone's height
